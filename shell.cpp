@@ -153,14 +153,33 @@ Expression parse_command_line(string commandLine) {
   return expression;
 }
 
+// Wrapper for chdir which handles arguments 
+void cd(vector<string> args) {
+  if (args.size() == 1) { 
+    chdir(getenv("HOME"));
+  } else if (args.size() == 2) {
+    chdir(args[1].c_str());
+  } else {
+    cerr << "cd: too many arguments" << endl;
+  }
+}
+
 int execute_expression(Expression& expression) {
   // Check for empty expression
   if (expression.commands.size() == 0)
     return EINVAL;
 
-
   // Handle intern commands (like 'cd' and 'exit')
-  
+  if(expression.commands.size() == 1) {
+    vector<string> cmd = expression.commands[0].parts;
+    
+    if(cmd[0] == "cd") {
+      cd(cmd);
+    } else if (cmd[0] == "exit") {
+      exit(0);
+    }
+    
+  }
   // External commands, executed with fork():
   // Loop over all commandos, and connect the output and input of the forked processes
 
@@ -219,7 +238,7 @@ int step1(bool showPrompt) {
 }
 
 int shell(bool showPrompt) {
-  /* <- remove one '/' in front of the other '/' to switch from the normal code to step1 code
+  //* <- remove one '/' in front of the other '/' to switch from the normal code to step1 code
   while (cin.good()) {
     string commandLine = request_command_line(showPrompt);
     Expression expression = parse_command_line(commandLine);
@@ -228,7 +247,7 @@ int shell(bool showPrompt) {
       cerr << strerror(rc) << endl;
   }
   return 0;
-  */
+  /*/
   return step1(showPrompt);
   //*/
 }
