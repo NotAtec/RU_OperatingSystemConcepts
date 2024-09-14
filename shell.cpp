@@ -5,8 +5,8 @@
 	* v22.09.05
 
 	Student names:
-	- ...
-	- ...
+	- Jeroen Brinkhorst s1101799
+	- Jeske Groenheiden s1093553
 */
 
 /**
@@ -95,14 +95,14 @@ int execute_command(const Command& cmd) {
     return EINVAL;
 
   // execute external commands
-  pid_t child1 = fork();
-  int retval = 0;
+  // pid_t child1 = fork();
+  // int retval = 0;
 
-  if (child1 == 0) {
-    retval = execvp(parts);
-  }
+  // if (child1 == 0) {
+  int retval = execvp(parts);
+  // }
 
-  waitpid(child1, nullptr, 0);
+  // waitpid(child1, nullptr, 0);
   
   return retval ? errno : 0;
 }
@@ -158,10 +158,12 @@ int execute_expression(Expression& expression) {
   if (expression.commands.size() == 0)
     return EINVAL;
 
+
   // Handle intern commands (like 'cd' and 'exit')
   
   // External commands, executed with fork():
   // Loop over all commandos, and connect the output and input of the forked processes
+
 
   // For now, we just execute the first command in the expression. Disable.
   execute_command(expression.commands[0]);
@@ -174,11 +176,20 @@ int execute_expression(Expression& expression) {
 int step1(bool showPrompt) {
   // create communication channel shared between the two processes
   // ...
+  int pipefd[2];
+  if (pipe(pipefd) == -1) {
+    perror("pipe");
+    return 1;
+  }
 
+  
   pid_t child1 = fork();
   if (child1 == 0) {
     // redirect standard output (STDOUT_FILENO) to the input of the shared communication channel
+    dup2(pipefd[1], STDOUT_FILENO);
     // free non used resources (why?)
+    close(pipefd[0]);
+
     Command cmd = {{string("date")}};
     execute_command(cmd);
     // display nice warning that the executable could not be found
@@ -188,11 +199,17 @@ int step1(bool showPrompt) {
   pid_t child2 = fork();
   if (child2 == 0) {
     // redirect the output of the shared communication channel to the standard input (STDIN_FILENO).
+    dup2(pipefd[0], STDIN_FILENO);
     // free non used resources (why?)
+    close(pipefd[1]);
+
     Command cmd = {{string("tail"), string("-c"), string("5")}};
     execute_command(cmd);
     abort(); // if the executable is not found, we should abort. (why?)
   }
+
+  close(pipefd[1]);
+  close(pipefd[0]);
 
   // free non used resources (why?)
   // wait on child processes to finish (why both?)
@@ -202,7 +219,7 @@ int step1(bool showPrompt) {
 }
 
 int shell(bool showPrompt) {
-  //* <- remove one '/' in front of the other '/' to switch from the normal code to step1 code
+  /* <- remove one '/' in front of the other '/' to switch from the normal code to step1 code
   while (cin.good()) {
     string commandLine = request_command_line(showPrompt);
     Expression expression = parse_command_line(commandLine);
@@ -211,7 +228,7 @@ int shell(bool showPrompt) {
       cerr << strerror(rc) << endl;
   }
   return 0;
-  /*/
+  */
   return step1(showPrompt);
   //*/
 }
