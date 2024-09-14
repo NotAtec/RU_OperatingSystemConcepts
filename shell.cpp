@@ -167,15 +167,15 @@ int execute_expression(Expression& expression) {
     
     if(cmd[0] == "cd") {
       cd(cmd);
-      expression.commands.pop_back();
     } else if (cmd[0] == "exit") {
-      expression.commands.pop_back();
       exit(0);
     }
   }
+
   // External commands, executed with fork():
   // Loop over all commandos, and connect the output and input of the forked processes
 
+  // Create arrays for pipes & forks
   int size = static_cast<int>(expression.commands.size());
   int pipefds[size - 1][2];
   pid_t children[size];
@@ -188,6 +188,7 @@ int execute_expression(Expression& expression) {
     }
   }
 
+  // Handle forking & command execution
   for(int i = 0; i < size; i++) {
     children[i] = fork();
     if (children[i] == 0) {
@@ -211,7 +212,9 @@ int execute_expression(Expression& expression) {
       // Execute correct command, unless the command is an internal command, in which case just pass over and abort.
       if (!(expression.commands[i].parts[0] == "cd" || expression.commands[i].parts[0] == "exit")) {
         execute_command(expression.commands[i]);
-        cerr << "Error: Command not found" << endl;
+        cerr << "Error: Command '" << expression.commands[i].parts[0] << "' not found" << endl; 
+        // We assume if there's an error in execvp() it must be due to a not found command. 
+        // This could be improved by a proper errno handler.
       }
       
       abort();
