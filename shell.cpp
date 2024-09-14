@@ -94,16 +94,8 @@ int execute_command(const Command& cmd) {
   if (parts.size() == 0)
     return EINVAL;
 
-  // execute external commands
-  // pid_t child1 = fork();
-  // int retval = 0;
-
-  // if (child1 == 0) {
   int retval = execvp(parts);
-  // }
 
-  // waitpid(child1, nullptr, 0);
-  
   return retval ? errno : 0;
 }
 
@@ -175,17 +167,67 @@ int execute_expression(Expression& expression) {
     
     if(cmd[0] == "cd") {
       cd(cmd);
+      expression.commands.pop_back();
     } else if (cmd[0] == "exit") {
+      expression.commands.pop_back();
       exit(0);
     }
-    
   }
   // External commands, executed with fork():
   // Loop over all commandos, and connect the output and input of the forked processes
 
+  int size = static_cast<int>(expression.commands.size());
+  int pipefds[size - 1][2];
+  pid_t children[size];
 
-  // For now, we just execute the first command in the expression. Disable.
-  execute_command(expression.commands[0]);
+  // Create pipes
+  for(int i = 0; i < (size - 1); i++) {
+    if (pipe(pipefds[i]) == -1) {
+      perror("pipe");
+      return 1;
+    }
+  }
+
+  for(int i = 0; i < size; i++) {
+    children[i] = fork();
+    if (children[i] == 0) {
+      // Redirect input if not the first command
+      if(i != 0) {
+        dup2(pipefds[i - 1][0], STDIN_FILENO);
+      }
+
+      // Redirect output if not the last command
+      if(i != (size - 1)) {
+        dup2(pipefds[i][1], STDOUT_FILENO);
+      }
+
+      // Close all pipe ends in the child process
+      for (int j = 0; j < (size - 1); j++) {
+        close(pipefds[j][0]);
+        close(pipefds[j][1]);
+      }
+      
+
+      // Execute correct command, unless the command is an internal command, in which case just pass over and abort.
+      if (!(expression.commands[i].parts[0] == "cd" || expression.commands[i].parts[0] == "exit")) {
+        execute_command(expression.commands[i]);
+        cerr << "Error: Command not found" << endl;
+      }
+      
+      abort();
+    }
+  }
+
+  // Parent process closes all pipe ends
+  for(int i = 0; i < (size - 1); i++) {
+    close(pipefds[i][1]);
+    close(pipefds[i][0]);
+  }
+
+  // Wait for all child processes to finish
+  for(int i = 0; i < size; i++) {
+    waitpid(children[i], nullptr, 0);
+  }
 
   return 0;
 }
@@ -248,6 +290,6 @@ int shell(bool showPrompt) {
   }
   return 0;
   /*/
-  return step1(showPrompt);
+  // return step1(showPrompt);
   //*/
 }
