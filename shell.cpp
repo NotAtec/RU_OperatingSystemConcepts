@@ -95,7 +95,15 @@ int execute_command(const Command& cmd) {
     return EINVAL;
 
   // execute external commands
-  int retval = execvp(parts);
+  pid_t child1 = fork();
+  int retval = 0;
+
+  if (child1 == 0) {
+    retval = execvp(parts);
+  }
+
+  waitpid(child1, nullptr, 0);
+  
   return retval ? errno : 0;
 }
 
