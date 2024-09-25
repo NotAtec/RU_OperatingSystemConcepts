@@ -156,6 +156,9 @@ void cd(vector<string> args) {
   }
 }
 
+// TD: Error processing
+// TD: Background handling`
+// TD: Input stream Exit
 int execute_expression(Expression& expression) {
   // Check for empty expression
   if (expression.commands.size() == 0)
@@ -195,11 +198,19 @@ int execute_expression(Expression& expression) {
       // Redirect input if not the first command
       if(i != 0) {
         dup2(pipefds[i - 1][0], STDIN_FILENO);
+      } else if (!expression.inputFromFile.empty()) { // If it's the first command, see if theres a file to use as input
+        int inputFd = open(expression.inputFromFile.c_str(), O_RDONLY);
+        dup2(inputFd, STDIN_FILENO); // Redirect the file to the input stream.
+        close(inputFd);
       }
 
       // Redirect output if not the last command
-      if(i != (size - 1)) {
+      if (i != (size - 1)) {
         dup2(pipefds[i][1], STDOUT_FILENO);
+      } else if (!expression.outputToFile.empty()) { // If it's the last command, see if theres a file to use as output
+        int outputFd = open(expression.outputToFile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        dup2(outputFd, STDOUT_FILENO); // Redirect the output to file.
+        close(outputFd);
       }
 
       // Close all pipe ends in the child process
