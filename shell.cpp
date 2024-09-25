@@ -157,8 +157,7 @@ void cd(vector<string> args) {
 }
 
 // TD: Error processing
-// TD: Background handling`
-// TD: Input stream Exit
+// TD: Background handling
 int execute_expression(Expression& expression) {
   // Check for empty expression
   if (expression.commands.size() == 0)
@@ -295,13 +294,18 @@ int step1(bool showPrompt) {
 
 int shell(bool showPrompt) {
   //* <- remove one '/' in front of the other '/' to switch from the normal code to step1 code
-  while (cin.good()) {
+  while (cin.good()) { // When stdin gets closed, it'll enter fail state and
+                       // exit this loop && exit.
     string commandLine = request_command_line(showPrompt);
     Expression expression = parse_command_line(commandLine);
+    if (!cin.good()) // Extra check to exit before execution if needed.
+        break;
     int rc = execute_expression(expression);
     if (rc != 0)
       cerr << strerror(rc) << endl;
   }
+  cout << endl;
+
   return 0;
   /*/
   // return step1(showPrompt);
