@@ -156,8 +156,6 @@ void cd(vector<string> args) {
   }
 }
 
-// TD: Error processing
-// TD: Background handling
 int execute_expression(Expression& expression) {
   // Check for empty expression
   if (expression.commands.size() == 0)
@@ -175,8 +173,6 @@ int execute_expression(Expression& expression) {
   }
 
   // External commands, executed with fork():
-  // Loop over all commandos, and connect the output and input of the forked processes
-
   // Create arrays for pipes & forks
   int size = static_cast<int>(expression.commands.size());
   int pipefds[size - 1][2];
@@ -194,16 +190,18 @@ int execute_expression(Expression& expression) {
   for(int i = 0; i < size; i++) {
     children[i] = fork();
     if (children[i] == 0) {
-      // Redirect input if not the first command
-      if(i != 0) {
+      // Redirect input to pipe or file
+      if(i != 0) { 
         dup2(pipefds[i - 1][0], STDIN_FILENO);
       } else if (!expression.inputFromFile.empty()) { // If it's the first command, see if theres a file to use as input
         int inputFd = open(expression.inputFromFile.c_str(), O_RDONLY);
         dup2(inputFd, STDIN_FILENO); // Redirect the file to the input stream.
         close(inputFd);
+      } else if (expression.inputFromFile.empty() && expression.background) { // If backgrounded, don't allow input from stdin
+        fclose(stdin);
       }
 
-      // Redirect output if not the last command
+      // Redirect output to pipe or file
       if (i != (size - 1)) {
         dup2(pipefds[i][1], STDOUT_FILENO);
       } else if (!expression.outputToFile.empty()) { // If it's the last command, see if theres a file to use as output
@@ -223,8 +221,6 @@ int execute_expression(Expression& expression) {
       if (!(expression.commands[i].parts[0] == "cd" || expression.commands[i].parts[0] == "exit")) {
         execute_command(expression.commands[i]);
         cerr << "Error: Command '" << expression.commands[i].parts[0] << "' not found" << endl; 
-        // We assume if there's an error in execvp() it must be due to a not found command. 
-        // This could be improved by a proper errno handler.
       }
       
       abort();
@@ -237,9 +233,11 @@ int execute_expression(Expression& expression) {
     close(pipefds[i][0]);
   }
 
-  // Wait for all child processes to finish
-  for(int i = 0; i < size; i++) {
-    waitpid(children[i], nullptr, 0);
+  // Wait for all child processes to finish, except if running in background
+  if (!expression.background) {
+    for(int i = 0; i < size; i++) {
+      waitpid(children[i], nullptr, 0);
+    }
   }
 
   return 0;
