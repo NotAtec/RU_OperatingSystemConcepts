@@ -197,7 +197,9 @@ int execute_expression(Expression& expression) {
         int inputFd = open(expression.inputFromFile.c_str(), O_RDONLY);
         dup2(inputFd, STDIN_FILENO); // Redirect the file to the input stream.
         close(inputFd);
-      } else if (expression.inputFromFile.empty() && expression.background) { // If backgrounded, don't allow input from stdin
+      }
+
+      if (expression.background) { // If backgrounded, don't allow input from stdin
         fclose(stdin);
       }
 
