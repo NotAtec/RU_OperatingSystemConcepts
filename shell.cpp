@@ -301,7 +301,7 @@ int shell(bool showPrompt) {
     if (!cin.good()) // Extra check to exit before execution if needed.
         break;
     int rc = execute_expression(expression);
-    if (rc != 0)
+    if (rc != 0 && rc != EINVAL)
       cerr << strerror(rc) << endl;
   }
   cout << endl;
