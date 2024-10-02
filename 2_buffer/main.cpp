@@ -87,6 +87,7 @@ public:
       log.write(Append, true);
     }
   }
+
   optional<int> remove() {
     if (b.empty()) {
       log.write(Remove, false);
@@ -98,11 +99,13 @@ public:
       return r;
     }
   }
+
   void bound(int b) {
     bounded = true;
     bound_limit = b;
     log.write(Bound, true);
   }
+
   void unbound() {
     bounded = false;
     bound_limit = 0;
@@ -116,4 +119,3 @@ private:
 };
 
 int main(int argc, char *argv[]) { return 0; }
-
