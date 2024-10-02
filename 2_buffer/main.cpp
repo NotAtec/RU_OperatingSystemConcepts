@@ -19,7 +19,8 @@
 #include <thread>
 #include <vector>
 
-// although it is good habit, you don't have to type 'std::' before many objects by including this line
+// although it is good habit, you don't have to type 'std::' before many objects
+// by including this line
 using namespace std;
 
 // TD: Logging
@@ -28,8 +29,7 @@ enum Operation { Append, Remove, Bound, Unbound };
 
 class Buffer {
 public:
-  Buffer(bool bounded, int bound = 0)
-    : bounded(bounded), bound_limit(bound) {}
+  Buffer(bool bounded, int bound = 0) : bounded(bounded), bound_limit(bound) {}
 
   void append(int i) {
     if (bounded && b.size() >= bound_limit) {
@@ -48,7 +48,7 @@ public:
       b.erase(b.begin());
       // Log Success
       return r;
-    }    
+    }
   }
   void bound(int b) {
     bounded = true;
@@ -108,8 +108,5 @@ private:
   vector<string> l;
 };
 
-
-int main(int argc, char* argv[]) {
-	return 0;
-}
+int main(int argc, char *argv[]) { return 0; }
 
