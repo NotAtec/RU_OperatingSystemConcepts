@@ -23,49 +23,8 @@
 // by including this line
 using namespace std;
 
-// TD: Logging
 // TD: Parallelism
 enum Operation { Append, Remove, Bound, Unbound };
-
-class Buffer {
-public:
-  Buffer(bool bounded, int bound = 0) : bounded(bounded), bound_limit(bound) {}
-
-  void append(int i) {
-    if (bounded && b.size() >= bound_limit) {
-      // Log error
-    } else {
-      b.push_back(i);
-      // Log Success
-    }
-  }
-  optional<int> remove() {
-    if (b.empty()) {
-      // Log Error
-      return {};
-    } else {
-      int r = b.front();
-      b.erase(b.begin());
-      // Log Success
-      return r;
-    }
-  }
-  void bound(int b) {
-    bounded = true;
-    bound_limit = b;
-    // Log Success
-  }
-  void unbound() {
-    bounded = false;
-    bound_limit = 0;
-    // Log Success
-  }
-
-private:
-  vector<int> b;
-  bool bounded;
-  int bound_limit;
-};
 
 class Logger {
 public:
@@ -102,10 +61,52 @@ public:
     };
   }
 
-  string read(int idx) { return l.at(idx); }
+  string read(int idx) { return l.at(idx); } // TD: Make this fail-safe
 
 private:
   vector<string> l;
+};
+
+class Buffer {
+public:
+  Buffer(bool bounded, int bound = 0) : bounded(bounded), bound_limit(bound) {}
+
+  Logger log;
+
+  void append(int i) {
+    if (bounded && b.size() >= bound_limit) {
+      log.write(Append, false);
+    } else {
+      b.push_back(i);
+      log.write(Append, true);
+    }
+  }
+  optional<int> remove() {
+    if (b.empty()) {
+      log.write(Remove, false);
+      return {};
+    } else {
+      int r = b.front();
+      b.erase(b.begin());
+      log.write(Remove, true);
+      return r;
+    }
+  }
+  void bound(int b) {
+    bounded = true;
+    bound_limit = b;
+    log.write(Bound, true);
+  }
+  void unbound() {
+    bounded = false;
+    bound_limit = 0;
+    log.write(Unbound, true);
+  }
+
+private:
+  vector<int> b;
+  bool bounded;
+  int bound_limit;
 };
 
 int main(int argc, char *argv[]) { return 0; }
