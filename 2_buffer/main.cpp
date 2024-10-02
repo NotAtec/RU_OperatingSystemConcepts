@@ -22,7 +22,6 @@
 // although it is good habit, you don't have to type 'std::' before many objects by including this line
 using namespace std;
 
-// TD: Case logic append / remove
 // TD: Logging
 // TD: Logger write -> Case distinctions
 // TD: Parallelism
@@ -33,12 +32,23 @@ public:
     : bounded(bounded), bound_limit(bound) {}
 
   void append(int i) {
-    b.push_back(i);
+    if (bounded && b.size() >= bound_limit) {
+      // Log error
+    } else {
+      b.push_back(i);
+      // Log Success
+    }
   }
-  int remove() {
-    int r = b.front();
-    b.erase(b.begin());
-    return r;
+  optional<int> remove() {
+    if (b.empty()) {
+      // Log Error
+      return {};
+    } else {
+      int r = b.front();
+      b.erase(b.begin());
+      // Log Success
+      return r;
+    }    
   }
   void bound(int b) {
     bounded = true;
