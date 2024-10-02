@@ -61,7 +61,13 @@ public:
     };
   }
 
-  string read(int idx) { return l.at(idx); } // TD: Make this fail-safe
+  string read(int idx) {
+    if (l.empty() || l.size() <= idx) {
+      l.push_back("Logger: Operation 'Read' failed");
+    } else {
+      return l.at(idx);
+    }
+  }
 
 private:
   vector<string> l;
