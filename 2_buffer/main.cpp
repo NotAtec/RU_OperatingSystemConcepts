@@ -23,8 +23,8 @@
 using namespace std;
 
 // TD: Logging
-// TD: Logger write -> Case distinctions
 // TD: Parallelism
+enum Operation { Append, Remove, Bound, Unbound };
 
 class Buffer {
 public:
@@ -53,10 +53,12 @@ public:
   void bound(int b) {
     bounded = true;
     bound_limit = b;
+    // Log Success
   }
   void unbound() {
     bounded = false;
     bound_limit = 0;
+    // Log Success
   }
 
 private:
@@ -67,11 +69,41 @@ private:
 
 class Logger {
 public:
-  void write(string op, bool did_work) {}
-
-  string read(int idx) {
-    return l.at(idx);
+  void write(Operation op, bool did_work) {
+    switch (op) {
+    case Append:
+      if (did_work) {
+        l.push_back("Operation: 'Append' succeeded");
+      } else {
+        l.push_back("Operation: 'Append' failed");
+      }
+      break;
+    case Remove:
+      if (did_work) {
+        l.push_back("Operation: 'Remove' succeeded");
+      } else {
+        l.push_back("Operation: 'Remove' failed");
+      }
+      break;
+    case Bound:
+      if (did_work) {
+        l.push_back("Operation: 'Bound' succeeded");
+      } else {
+        l.push_back("Operation: 'Bound' failed");
+      }
+      break;
+    case Unbound:
+      if (did_work) {
+        l.push_back("Operation: 'Unbound' succeeded");
+      } else {
+        l.push_back("Operation: 'Unbound' failed");
+      }
+      break;
+    };
   }
+
+  string read(int idx) { return l.at(idx); }
+
 private:
   vector<string> l;
 };
