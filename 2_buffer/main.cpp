@@ -26,8 +26,6 @@ using namespace std;
 // TD: Parallelism
 enum Operation { Append, Remove, Bound, Unbound };
 
-mutex log_mutex;
-
 class Logger {
 public:
   void write(Operation op, bool did_work) {
@@ -86,6 +84,7 @@ public:
 
 private:
   vector<string> l;
+  mutex log_mutex;
 };
 
 class Buffer {
@@ -116,14 +115,19 @@ public:
   }
 
   void bound(int b) {
+    bool_mutex.lock();
     bounded = true;
+    bool_mutex.unlock();
+    lim_mutex.lock();
     bound_limit = b;
+    lim_mutex.unlock();
     log.write(Bound, true);
   }
 
   void unbound() {
+    bool_mutex.lock();
     bounded = false;
-    bound_limit = 0;
+    bool_mutex.unlock();
     log.write(Unbound, true);
   }
 
@@ -131,9 +135,12 @@ private:
   vector<int> b;
   bool bounded;
   int bound_limit;
+
+  mutex bool_mutex;
+  mutex lim_mutex;
 };
 
-// Our implementation prevents -1 from being used as a buffer state, since -1
-// indicates a failed read due to empty buffer.
+// Our implementation should not have -1 being used as a value in the buffer,
+// since -1 indicates a failed read due to empty buffer.
 
 int main(int argc, char *argv[]) { return 0; }
