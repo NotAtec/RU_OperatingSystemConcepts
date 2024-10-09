@@ -26,37 +26,47 @@ using namespace std;
 // TD: Parallelism
 enum Operation { Append, Remove, Bound, Unbound };
 
+mutex log_mutex;
+
 class Logger {
 public:
   void write(Operation op, bool did_work) {
     switch (op) {
     case Append:
+      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Append' succeeded");
       } else {
         l.push_back("Operation: 'Append' failed");
       }
+      log_mutex.unlock();
       break;
     case Remove:
+      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Remove' succeeded");
       } else {
         l.push_back("Operation: 'Remove' failed");
       }
+      log_mutex.unlock();
       break;
     case Bound:
+      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Bound' succeeded");
       } else {
         l.push_back("Operation: 'Bound' failed");
       }
+      log_mutex.unlock();
       break;
     case Unbound:
+      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Unbound' succeeded");
       } else {
         l.push_back("Operation: 'Unbound' failed");
       }
+      log_mutex.unlock();
       break;
     };
   }
