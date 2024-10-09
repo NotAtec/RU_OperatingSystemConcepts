@@ -94,9 +94,24 @@ public:
   Logger log;
 
   void append(int i) {
+    bound_t.lock();
+    lim_t.lock();
+    lim_t.unlock();
+    bound_t.unlock();
+
+    m_readers.lock();
+    if (readers == 0) {
+      bound_r.lock();
+      lim_r.lock();
+    }
+    readers += 1;
+    m_readers.unlock();
+
     if (bounded && b.size() >= bound_limit) {
+      unlock_bound();
       log.write(Append, false);
     } else {
+      unlock_bound();
       b.push_back(i);
       log.write(Append, true);
     }
@@ -142,6 +157,12 @@ public:
 
 private:
   vector<int> b;
+
+  int r_buf = 0;
+  mutex m_r_buf;
+  mutex buf_t;
+  mutex buf_r;
+
   bool bounded;
   int bound_limit;
 
@@ -151,6 +172,16 @@ private:
   mutex bound_r;
   mutex lim_t;
   mutex lim_r;
+
+  void unlock_bound() {
+    m_readers.lock();
+    readers -= 1;
+    if (readers == 0) {
+      bound_r.unlock();
+      lim_r.unlock();
+    }
+    m_readers.unlock();
+  }
 };
 
 // Our implementation should not have -1 being used as a value in the buffer,
