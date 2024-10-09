@@ -64,6 +64,7 @@ public:
   string read(int idx) {
     if (l.empty() || l.size() <= idx) {
       l.push_back("Logger: Operation 'Read' failed");
+      return "";
     } else {
       return l.at(idx);
     }
@@ -88,10 +89,10 @@ public:
     }
   }
 
-  optional<int> remove() {
+  int remove() {
     if (b.empty()) {
       log.write(Remove, false);
-      return {};
+      return -1;
     } else {
       int r = b.front();
       b.erase(b.begin());
@@ -117,5 +118,8 @@ private:
   bool bounded;
   int bound_limit;
 };
+
+// Our implementation prevents -1 from being used as a buffer state, since -1
+// indicates a failed read due to empty buffer.
 
 int main(int argc, char *argv[]) { return 0; }
