@@ -115,19 +115,28 @@ public:
   }
 
   void bound(int b) {
-    bool_mutex.lock();
+    bound_t.lock();
+    bound_r.lock();
     bounded = true;
-    bool_mutex.unlock();
-    lim_mutex.lock();
+    bound_r.unlock();
+    bound_t.unlock();
+
+    lim_t.lock();
+    lim_r.lock();
     bound_limit = b;
-    lim_mutex.unlock();
+    lim_r.unlock();
+    lim_t.unlock();
+
     log.write(Bound, true);
   }
 
   void unbound() {
-    bool_mutex.lock();
+    bound_t.lock();
+    bound_r.lock();
     bounded = false;
-    bool_mutex.unlock();
+    bound_r.unlock();
+    bound_t.unlock();
+
     log.write(Unbound, true);
   }
 
@@ -136,8 +145,12 @@ private:
   bool bounded;
   int bound_limit;
 
-  mutex bool_mutex;
-  mutex lim_mutex;
+  int readers = 0;
+  mutex m_readers;
+  mutex bound_t;
+  mutex bound_r;
+  mutex lim_t;
+  mutex lim_r;
 };
 
 // Our implementation should not have -1 being used as a value in the buffer,
