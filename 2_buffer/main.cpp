@@ -78,6 +78,8 @@ public:
       log_mutex.unlock();
       return "";
     } else {
+      log_mutex.lock();
+      log_mutex.unlock();
       return l.at(idx);
     }
   }
