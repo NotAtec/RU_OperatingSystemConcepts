@@ -23,68 +23,98 @@
 // by including this line
 using namespace std;
 
-// TD: Parallelism
 enum Operation { Append, Remove, Bound, Unbound };
 
 class Logger {
 public:
   void write(Operation op, bool did_work) {
+    lock_W();
     switch (op) {
     case Append:
-      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Append' succeeded");
       } else {
         l.push_back("Operation: 'Append' failed");
       }
-      log_mutex.unlock();
       break;
     case Remove:
-      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Remove' succeeded");
       } else {
         l.push_back("Operation: 'Remove' failed");
       }
-      log_mutex.unlock();
       break;
     case Bound:
-      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Bound' succeeded");
       } else {
         l.push_back("Operation: 'Bound' failed");
       }
-      log_mutex.unlock();
       break;
     case Unbound:
-      log_mutex.lock();
       if (did_work) {
         l.push_back("Operation: 'Unbound' succeeded");
       } else {
         l.push_back("Operation: 'Unbound' failed");
       }
-      log_mutex.unlock();
       break;
     };
+    unlock_W();
   }
 
   string read(int idx) {
+    lock_R();
     if (l.empty() || l.size() <= idx) {
-      log_mutex.lock();
+      unlock_R();
+      lock_W();
       l.push_back("Logger: Operation 'Read' failed");
-      log_mutex.unlock();
+      unlock_W();
       return "";
     } else {
-      log_mutex.lock();
-      log_mutex.unlock();
-      return l.at(idx);
+      string s = l.at(idx);
+      unlock_R();
+      return s;
     }
   }
 
+
 private:
   vector<string> l;
-  mutex log_mutex;
+  int readers = 0;
+  mutex m_readers;
+  mutex r;
+  mutex t;
+
+  void lock_W() {
+    t.lock();
+    r.lock();
+  }
+
+  void unlock_W() {
+    r.unlock();
+    t.unlock();
+  }
+
+  void lock_R() {
+    t.lock();
+    t.unlock();
+
+    m_readers.lock();
+    if (readers == 0) {
+      r.lock();
+    }
+    readers += 1;
+    m_readers.unlock();
+  }
+
+  void unlock_R() {
+    m_readers.lock();
+    readers -= 1;
+    if (readers == 0) {
+      r.unlock();
+    }
+    m_readers.unlock();
+  }
 };
 
 class Buffer {
@@ -94,36 +124,31 @@ public:
   Logger log;
 
   void append(int i) {
-    bound_t.lock();
-    lim_t.lock();
-    lim_t.unlock();
-    bound_t.unlock();
-
-    m_readers.lock();
-    if (readers == 0) {
-      bound_r.lock();
-      lim_r.lock();
-    }
-    readers += 1;
-    m_readers.unlock();
-
+    lock_bound_R();
     if (bounded && b.size() >= bound_limit) {
-      unlock_bound();
+      unlock_bound_R();
       log.write(Append, false);
     } else {
-      unlock_bound();
+      unlock_bound_R();
+      lock_buf_W();
       b.push_back(i);
+      unlock_buf_W();
       log.write(Append, true);
     }
   }
 
   int remove() {
+    lock_buf_R();
     if (b.empty()) {
+      unlock_buf_R();
       log.write(Remove, false);
       return -1;
     } else {
+      unlock_buf_R();
+      lock_buf_W();
       int r = b.front();
       b.erase(b.begin());
+      unlock_buf_W();
       log.write(Remove, true);
       return r;
     }
@@ -132,15 +157,16 @@ public:
   void bound(int b) {
     bound_t.lock();
     bound_r.lock();
-    bounded = true;
-    bound_r.unlock();
-    bound_t.unlock();
-
     lim_t.lock();
     lim_r.lock();
+
+    bounded = true;
     bound_limit = b;
+
     lim_r.unlock();
     lim_t.unlock();
+    bound_r.unlock();
+    bound_t.unlock();
 
     log.write(Bound, true);
   }
@@ -148,7 +174,9 @@ public:
   void unbound() {
     bound_t.lock();
     bound_r.lock();
+
     bounded = false;
+
     bound_r.unlock();
     bound_t.unlock();
 
@@ -173,7 +201,22 @@ private:
   mutex lim_t;
   mutex lim_r;
 
-  void unlock_bound() {
+  void lock_bound_R() {
+    bound_t.lock();
+    lim_t.lock();
+    lim_t.unlock();
+    bound_t.unlock();
+
+    m_readers.lock();
+    if (readers == 0) {
+      bound_r.lock();
+      lim_r.lock();
+    }
+    readers += 1;
+    m_readers.unlock();
+  }
+
+  void unlock_bound_R() {
     m_readers.lock();
     readers -= 1;
     if (readers == 0) {
@@ -181,6 +224,37 @@ private:
       lim_r.unlock();
     }
     m_readers.unlock();
+  }
+
+  void lock_buf_W() {
+    buf_t.lock();
+    buf_r.lock();
+  }
+
+  void unlock_buf_W() {
+    buf_r.unlock();
+    buf_t.unlock();
+  }
+
+  void lock_buf_R() {
+    buf_t.lock();
+    buf_t.unlock();
+
+    m_r_buf.lock();
+    if (r_buf == 0) {
+      buf_r.lock();
+    }
+    r_buf += 1;
+    m_r_buf.unlock();
+  }
+
+  void unlock_buf_R() {
+    m_r_buf.lock();
+    r_buf -= 1;
+    if (r_buf == 0) {
+      buf_r.unlock();
+    }
+    m_r_buf.unlock();
   }
 };
 
