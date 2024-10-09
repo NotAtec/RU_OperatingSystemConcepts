@@ -73,7 +73,9 @@ public:
 
   string read(int idx) {
     if (l.empty() || l.size() <= idx) {
+      log_mutex.lock();
       l.push_back("Logger: Operation 'Read' failed");
+      log_mutex.unlock();
       return "";
     } else {
       return l.at(idx);
