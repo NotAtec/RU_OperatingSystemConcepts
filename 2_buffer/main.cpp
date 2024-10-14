@@ -125,7 +125,8 @@ private:
 
 class Buffer {
 public:
-  Buffer(bool bounded, long unsigned int bound = 0) : bounded(bounded), bound_limit(bound) {}
+  Buffer(bool bounded, long unsigned int bound = 0)
+      : bounded(bounded), bound_limit(bound) {}
 
   Logger log;
 
@@ -266,5 +267,68 @@ private:
 
 // Our implementation should not have -1 being used as a value in the buffer,
 // since -1 indicates a failed read due to empty buffer.
+void singleThreadTest() {
+  Buffer bounded(true, 2);
+  for (int i = 0; i < 3; i++) {
+    bounded.append(i);
+  }
 
-int main(int argc, char *argv[]) { return 0; }
+  size_t logSize1 = bounded.log.size();
+  if (logSize1 != 3) {
+    cout << "Bounded: Log size incorrect" << endl;
+  }
+
+  for (size_t i = 0; i < logSize1; i++) {
+    cout << bounded.log.read(i) << endl; // (c,c,f)
+  }
+
+  cout << endl << endl;
+
+  Buffer unb(false);
+  for (int i = 0; i < 3; i++) {
+    unb.append(i);
+  }
+
+  size_t logSize2 = unb.log.size();
+  if (logSize2 != 3) {
+    cout << "Unbounded: Log size incorrect" << endl;
+  }
+  for (size_t i = 0; i < logSize2; i++) {
+    cout << unb.log.read(i) << endl; // (c,c,c)
+  }
+
+  cout << endl << endl;
+
+  Buffer bufferempty(false);
+  bufferempty.remove();
+  cout << bufferempty.log.read(0) << endl; // (f)
+  cout << endl << endl;
+
+  bounded.unbound();
+  bounded.append(6);
+
+  cout << bounded.log.read(3) << endl << bounded.log.read(4) << endl; // (c,c)
+  cout << endl << endl;
+
+  bounded.bound(4);
+  bounded.append(1);
+  bounded.append(1);
+  cout << bounded.log.read(5) << endl
+       << bounded.log.read(6) << endl
+       << bounded.log.read(7) << endl; // (c,c, f)
+  cout << endl << endl;
+
+  int r = bounded.remove();
+  cout << (r == 0) << endl; // (1)
+
+  bounded.append(1);
+  bounded.append(1);
+  cout << bounded.log.read(8) << endl
+       << bounded.log.read(9) << endl
+       << bounded.log.read(10) << endl; // (c,c, f)
+  cout << endl << endl;
+}
+int main(int argc, char *argv[]) {
+  singleThreadTest();
+  return 0;
+}
