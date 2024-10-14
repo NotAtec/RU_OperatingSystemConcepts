@@ -77,6 +77,12 @@ public:
     }
   }
 
+  size_t size() {
+    lock_R();
+    int size = l.size();
+    unlock_R();
+    return size;
+  }
 
 private:
   vector<string> l;
