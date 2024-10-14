@@ -62,7 +62,7 @@ public:
     unlock_W();
   }
 
-  string read(int idx) {
+  string read(long unsigned int idx) {
     lock_R();
     if (l.empty() || l.size() <= idx) {
       unlock_R();
@@ -79,7 +79,7 @@ public:
 
   size_t size() {
     lock_R();
-    int size = l.size();
+    size_t size = l.size();
     unlock_R();
     return size;
   }
@@ -125,7 +125,7 @@ private:
 
 class Buffer {
 public:
-  Buffer(bool bounded, int bound = 0) : bounded(bounded), bound_limit(bound) {}
+  Buffer(bool bounded, long unsigned int bound = 0) : bounded(bounded), bound_limit(bound) {}
 
   Logger log;
 
@@ -160,7 +160,7 @@ public:
     }
   }
 
-  void bound(int b) {
+  void bound(long unsigned int b) {
     bound_t.lock();
     bound_r.lock();
     lim_t.lock();
@@ -198,7 +198,7 @@ private:
   mutex buf_r;
 
   bool bounded;
-  int bound_limit;
+  long unsigned int bound_limit;
 
   int readers = 0;
   mutex m_readers;
