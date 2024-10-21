@@ -5,16 +5,15 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Launch with debugger",
+			"name": "(gdb) Launch",
 			"type": "cppdbg",
 			"request": "launch",
-			"program": "${workspaceFolder}/build/shell",
+			"program": "${workspaceFolder}/build/memory",
 			"args": [],
 			"stopAtEntry": false,
 			"cwd": "${workspaceFolder}",
 			"environment": [],
 			"externalConsole": false,
-			"internalConsoleOptions": "neverOpen",
 			"MIMode": "gdb",
 			"setupCommands": [
 				{
