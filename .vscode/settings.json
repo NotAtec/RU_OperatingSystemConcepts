@@ -52,5 +52,6 @@
 		"thread": "cpp",
 		"typeinfo": "cpp",
 		"iomanip": "cpp"
-	}
+	},
+	"cmake.sourceDirectory": "/home/atec/uni/osc_operating-system-concepts/osc_projects/3_memory"
 }
