@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
   // ADJUST BELOW, BUT keep writing to the dummy variable
   float* res = new float[SIZE * SIZE];  // result of mean filter
 
-
+  float reciprocal = 1.0 / 9.0;
   // Apply an averaging imaging filter to some input image, and write in to an output image.
   // A pixel in the output image is calculated by averaging 9 pixels: the pixel at the same
   // coordinates in the input image, and the adjecent pixels.
@@ -46,12 +46,44 @@ int main(int argc, char* argv[]) {
       int64_t rowb_i = (j - 1) * SIZE;
       int64_t rowa_i = (j + 1) * SIZE;
 
-      for (int64_t i = 1; i < SIZE - 1; i++) {
+      for (int64_t i = 1; i < SIZE - 1; i += 5) {
         int64_t idx = row_i + i;
 
         res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
                     + img[rowb_i + i] + img[idx] + img[rowa_i + i]
-                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) / 9;
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
+
+        dummy += res[idx];
+
+        idx += 1;
+
+        res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
+                    + img[rowb_i + i] + img[idx] + img[rowa_i + i]
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
+
+        dummy += res[idx];
+
+        idx += 1;
+
+        res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
+                    + img[rowb_i + i] + img[idx] + img[rowa_i + i]
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
+
+        dummy += res[idx];
+
+        idx += 1;
+
+        res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
+                    + img[rowb_i + i] + img[idx] + img[rowa_i + i]
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
+
+        dummy += res[idx];
+
+        idx += 1;
+
+        res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
+                    + img[rowb_i + i] + img[idx] + img[rowa_i + i]
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
 
         dummy += res[idx];
       }
