@@ -52,8 +52,8 @@ int main(int argc, char* argv[]) {
       }
     }
 
-    for (int64_t i = 1; i < SIZE - 1; i++) {
-      for (int64_t j = 1; j < SIZE - 1; j++) {
+    for (int64_t j = 1; j < SIZE - 1; j++) {
+      for (int64_t i = 1; i < SIZE - 1; i++) {
         dummy += res[j * SIZE + i];
       }
     }
