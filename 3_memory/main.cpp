@@ -54,8 +54,6 @@ int main(int argc, char* argv[]) {
                     + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) * reciprocal;
 
         dummy += res[idx];
-
-        dummy += res[idx];
       }
     }
   }
