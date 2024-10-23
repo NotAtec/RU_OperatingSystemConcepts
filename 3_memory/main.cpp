@@ -49,19 +49,10 @@ int main(int argc, char* argv[]) {
       for (int64_t i = 1; i < SIZE - 1; i++) {
         int64_t idx = row_i + i;
 
-        res[idx] = img[rowb_i + i - 1];
-        res[idx] += img[idx - 1];
-        res[idx] += img[rowa_i + i - 1];
+        res[idx] = (img[rowb_i + i - 1] + img[idx - 1] + img[rowa_i + i - 1]
+                    + img[rowb_i + i] + img[idx] + img[rowa_i + i]
+                    + img[rowb_i + i + 1] + img[idx + 1] + img[rowa_i + i + 1]) / 9;
 
-        res[idx] += img[rowb_i + i];
-        res[idx] += img[idx];
-        res[idx] += img[rowa_i + i];
-
-        res[idx] += img[rowb_i + i + 1];
-        res[idx] += img[idx + 1];
-        res[idx] += img[rowa_i + i + 1];
-
-        res[j  * SIZE + i] /= 9;
       }
     }
 
