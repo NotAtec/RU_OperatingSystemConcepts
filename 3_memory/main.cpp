@@ -42,24 +42,24 @@ int main(int argc, char* argv[]) {
   // coordinates in the input image, and the adjecent pixels.
   for (int64_t r = 0; r < REPEAT; ++r) {
     for (int64_t j = 1; j < SIZE - 1; j++) {
-      // int64_t row_i = j * SIZE;
-      // int64_t rowb_i = (j - 1) * SIZE;
-      // int64_t rowa_i = (j + 1) * SIZE;
+      int64_t row_i = j * SIZE;
+      int64_t rowb_i = (j - 1) * SIZE;
+      int64_t rowa_i = (j + 1) * SIZE;
+
       for (int64_t i = 1; i < SIZE - 1; i++) {
-        // int64_t idx = row_i + i;
-        res[j  * SIZE + i] = 0;
-        
-        res[j * SIZE + i] = img[(j - 1) * SIZE + i - 1];
-        res[j * SIZE + i] += img[j * SIZE + i - 1];
-        res[j * SIZE + i] += img[(j + 1) * SIZE + i - 1];
+        int64_t idx = row_i + i;
 
-        res[j * SIZE + i] += img[(j - 1) * SIZE + i];
-        res[j * SIZE + i] += img[j * SIZE + i];
-        res[j * SIZE + i] += img[(j + 1) * SIZE + i];
+        res[idx] = img[rowb_i + i - 1];
+        res[idx] += img[idx - 1];
+        res[idx] += img[rowa_i + i - 1];
 
-        res[j * SIZE + i] += img[(j - 1) * SIZE + i + 1];
-        res[j * SIZE + i] += img[j * SIZE + i + 1];
-        res[j * SIZE + i] += img[(j + 1) * SIZE + i + 1];
+        res[idx] += img[rowb_i + i];
+        res[idx] += img[idx];
+        res[idx] += img[rowa_i + i];
+
+        res[idx] += img[rowb_i + i + 1];
+        res[idx] += img[idx + 1];
+        res[idx] += img[rowa_i + i + 1];
 
         res[j  * SIZE + i] /= 9;
       }
