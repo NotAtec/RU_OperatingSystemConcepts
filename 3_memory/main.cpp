@@ -42,13 +42,14 @@ int main(int argc, char* argv[]) {
   for (int64_t r = 0; r < REPEAT; ++r) {
     for (int64_t j = 1; j < SIZE - 1; j++) {
       for (int64_t i = 1; i < SIZE - 1; i++) {
-        res[j * SIZE + i] = 0;
+        int64_t idx = j * SIZE + 1;
+        res[idx] = 0;
         for (long k = -1; k < 2; k++) {
           for (long l = -1; l < 2; l++) {
-            res[j * SIZE + i] += img[(j + l) * SIZE + i + k];
+            res[idx] += img[(j + l) * SIZE + i + k];
           }
         }
-        res[j * SIZE + i] /= 9;
+        res[idx] /= 9;
       }
     }
 
@@ -68,7 +69,6 @@ int main(int argc, char* argv[]) {
   getrusage(RUSAGE_SELF, &usage);
 
   std::cout << "user time:                    " << usage.ru_utime.tv_sec << "." << std::fixed << std::setw(6) << std::setprecision(6) << std::setfill('0') << usage.ru_utime.tv_usec << " s" << std::endl;
-  std::cout << "system time:                  " << usage.ru_stime.tv_sec << "." << std::fixed << std::setw(6) << std::setprecision(6) << std::setfill('0') << usage.ru_stime.tv_usec << " s" << std::endl;
   std::cout << "soft page faults:             " << usage.ru_minflt << std::endl;
   std::cout << "hard page faults:             " << usage.ru_majflt << std::endl;
 #ifdef __APPLE__
